@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.PokemonDTO;
@@ -28,6 +29,43 @@ public class PokemonController {
 	@Autowired PokemonRepository pokemonRepository;
 
 	@Autowired PokemonMapper pokemonMapper;
+	
+	@GetMapping("/nombre_ataque")
+	public ResponseEntity<?> traerPokemonPorNombreYAtaque(@RequestParam String nombre, @RequestParam Long ataque) {
+		try {
+			List<Pokemon> entity = pokemonRepository.findAllByAtaqueAndNombre(ataque, nombre);
+		List<PokemonDTO> listDTO = pokemonMapper.entityToDTO(entity);
+			return new ResponseEntity<List<PokemonDTO>>(listDTO, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<String>("Pokemon no encontrado en nombre = " + nombre, HttpStatus.CONFLICT);
+		}
+	}
+	
+	
+	@GetMapping("/nombre/{nombre}")
+	public ResponseEntity<?> traerPokemonYHabilidadesPorNombre(@PathVariable String nombre) {
+		try {
+			List<Pokemon> entity = pokemonRepository.buscarPokemonYHabsPorNombre(nombre);
+		List<PokemonDTO> listDTO = pokemonMapper.entityToDTO(entity);
+			return new ResponseEntity<List<PokemonDTO>>(listDTO, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<String>("Pokemon no encontrado en nombre = " + nombre, HttpStatus.CONFLICT);
+		}
+	}
+	
+	@GetMapping("/stats")
+	public ResponseEntity<?> traerHabilidadPorID(@RequestParam Integer ataque, @RequestParam Integer defensa) {
+		try {
+			List<Pokemon> entity = pokemonRepository.buscarPokemonPorStats(ataque, defensa);
+			if(entity.size() <= 0) {
+				throw new Exception();
+			}
+			List<PokemonDTO> dto = pokemonMapper.entityToDTO(entity);
+			return new ResponseEntity<List<PokemonDTO>>(dto, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<String>("No hay pokemons mas fuertes que = " + ataque + " y con mejor defensa que = " + defensa, HttpStatus.CONFLICT);
+		}
+	}
 	
 	// TRAER POR ID
 	@GetMapping("/{id}")
@@ -45,23 +83,7 @@ public class PokemonController {
 	@PostMapping("/")
 	public ResponseEntity<?> crearPokemon(@RequestBody @Validated PokemonDTO dto) {
 		try {
-			Pokemon p = pokemonMapper.dtoToEntity(dto);
-			
-			List<HabilidadUnica> habilidades = p.getHabilidades();
-			int size = habilidades.size();
-			Pokemon tmp = new Pokemon();
-			tmp.setNombre(p.getNombre());
-			tmp.setAtaque(p.getAtaque());
-			tmp.setDefensa(p.getDefensa());
-			tmp.setId(p.getId());
-			
-			/*
-			 * Si trato de agregar el pokemon a la habilidad sin sacar sus habilidades se vuelve recursivo y me explota todo
-			 * */
-			
-			for (int i = 0; i < size; i++) {
-				habilidades.get(i).pokemon = tmp;
-			}
+			Pokemon p = pokemonMapper.dtoToEntitySinRecursividad(dto);
 			
 			pokemonRepository.save(p);
 			return new ResponseEntity<String>("Guardado correctamente", HttpStatus.OK);
@@ -76,6 +98,11 @@ public class PokemonController {
 		
 		if(entityOpt.isPresent()) {
 			Pokemon p = pokemonMapper.dtoToEntity(dto);
+			
+			for(HabilidadUnica h: p.getHabilidades()) {
+				h.setPokemon(p);
+			}
+			
 			pokemonRepository.save(p);
 			return new ResponseEntity<String>("Modificado correctamente", HttpStatus.OK);
 		} else {

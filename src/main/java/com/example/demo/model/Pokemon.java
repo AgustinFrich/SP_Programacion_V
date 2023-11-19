@@ -15,7 +15,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
-@Table(name = "sys_pokemon")
+@Table(name = "sys_pokemones")
 public class Pokemon implements Serializable {
 	private static final long serialVersionUID = 5133784777719392748L;
 
@@ -36,7 +36,7 @@ public class Pokemon implements Serializable {
 	@Column(name = "pkmn_defensa")
 	private Integer defensa;
 	
-	@OneToMany(mappedBy = "pokemon", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "pokemon", cascade = {CascadeType.ALL})
 	private List<HabilidadUnica> habilidades;
 
 	// Setters y getters

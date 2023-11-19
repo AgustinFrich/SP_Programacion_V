@@ -1,5 +1,8 @@
 package com.example.demo.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.example.demo.model.HabilidadUnica;

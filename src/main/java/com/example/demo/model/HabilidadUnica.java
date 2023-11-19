@@ -13,10 +13,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "sys_tipoPkm")
+@Table(name = "sys_tiposPkm")
 public class HabilidadUnica implements Serializable {
 	private static final long serialVersionUID = -4442260431491412972L;
 
@@ -33,8 +32,7 @@ public class HabilidadUnica implements Serializable {
 	@Column(name = "tip_color")
 	private String color;
 
-	@NotNull
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@ManyToOne(cascade = {CascadeType.ALL	}, fetch = FetchType.LAZY)
 	@JoinColumn(name = "pkmn_id")
 	public Pokemon pokemon;
 
